@@ -10,9 +10,9 @@ data ArgClassification = ClSwitch | ClDataSwitch | ClPosArg deriving Eq
 
 -- Represents the command line arguments
 data Args = Args {
-            positionals :: [PosArg],
-            switches :: [Switch],
-            dataSwitches :: [DataSwitch]
+            aPositionals :: [PosArg],
+            aSwitches :: [Switch],
+            aDataSwitches :: [DataSwitch]
             }
 instance Show Args where
     show (Args pos sw dsw) = "Positionals: " ++ (show pos) ++ "\nSwitches: " ++ (show sw) ++ "\nData switches: " ++ (show dsw)

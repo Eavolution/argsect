@@ -3,16 +3,16 @@ import Types
 
 import Data.Maybe
 
--- Testing
-swHelp = Switch "-h" "--help" "Displays the help menu."
-swEu = Switch "-e" "--europe" "Formats EU style."
-
-cSwitches = [swHelp, swEu]
-cdSwitches = [dswWords]
-
-dswWords = DataSwitch "-w" "--wordlist" (Just "/Wordlist") True "Sets wordlist."
-parse = argsect cSwitches cdSwitches
--- /Testing
+-- Takes the command line arguments and turns them into Args
+argsect :: [Switch] -> [DataSwitch] -> [String] -> Args
+argsect switches dataSwitches args =
+    Args posArgs (map (stringToSwitch switches) potSwitches) (map (stringToDataSwitch dataSwitches) potDataSwitches)
+        where
+            -- lstTuple is a tuple of list of positional arguments, potentially defined switches
+            posArgs = [x | x <- args, ClPosArg == (classify x)]
+            potSwitches = [x | x <- args, ClSwitch == (classify x)]
+            potDataSwitches = [x | x <- args, ClDataSwitch == (classify x)]
+        
 
 getDefaultHelpText :: [Switch] -> [DataSwitch] -> String -> String -> String
 getDefaultHelpText switches dSwitches progName usageDescription = 
@@ -20,8 +20,8 @@ getDefaultHelpText switches dSwitches progName usageDescription =
     where 
         acc :: Show a => String -> a -> String
         acc a b = a ++ "\n" ++ (show b)
-        options switches dSwitches =
-            foldl acc ((foldl acc "Switches:" switches)++ "\n\nData switches") dSwitches
+        options oSwitches odSwitches =
+            foldl acc ((foldl acc "Switches:" oSwitches)++ "\n\nData switches") odSwitches
 
 getUndefined :: [Switch] -> [Switch]
 getUndefined = filter (\x -> x == UndefinedSwitch "")
@@ -53,20 +53,20 @@ stringToSwitch switches string = fromMaybe (UndefinedSwitch string) $ strTomSwit
         -- Converts a string to a Maybe Switches. If the string is a defined switch, then the Just of
         -- that is returned. Otherwise Nothing is returned
         strTomSwitch :: [Switch] -> String -> Maybe Switch
-        strTomSwitch switches string = head' $ filter (strCmpSwitch string) switches
+        strTomSwitch sSwitches sString = head' $ filter (strCmpSwitch sString) sSwitches
 
 stringToDataSwitch :: [DataSwitch] -> String -> DataSwitch
 stringToDataSwitch dSwitches string = fromMaybe (UndefinedDataSwitch string) (strTomSwitch dSwitches (fst split) (snd split))
     where
-        getMatch :: String -> Maybe DataSwitch
-        getMatch str = head' (filter (\x -> (dswIdShort x == str) || (dswIdLong x == str)) dSwitches)
+        getMatch :: [DataSwitch] -> String -> Maybe DataSwitch
+        getMatch gdSwitches str = head' (filter (\x -> (dswIdShort x == str) || (dswIdLong x == str)) gdSwitches)
 
         split = splitAtFirst '=' string
         strTomSwitch :: [DataSwitch] -> String -> String-> Maybe DataSwitch
-        strTomSwitch switches string dat =
-            if isJust $ getMatch string then do
-                match <- (getMatch string)
-                Just (DataSwitch (dswIdShort match) (dswIdLong match) (Just     dat) (dswrequired match) (dswInfo match))
+        strTomSwitch sdSwitches sString dat =
+            if isJust $ getMatch sdSwitches sString then do
+                match <- (getMatch sdSwitches sString)
+                Just (DataSwitch (dswIdShort match) (dswIdLong match) (Just dat) (dswrequired match) (dswInfo match))
             else
                 Nothing
 
@@ -76,14 +76,3 @@ classify arg
     | '-' /= (head arg) = ClPosArg
     | '=' `elem` arg = ClDataSwitch
     | otherwise = ClSwitch
-
--- Takes the command line arguments and turns them into Args
-argsect :: [Switch] -> [DataSwitch] -> [String] -> Args
-argsect switches dataSwitches args =
-    Args posArgs (map (stringToSwitch switches) potSwitches) (map (stringToDataSwitch dataSwitches) potDataSwitches)
-        where
-            -- lstTuple is a tuple of list of positional arguments, potentially defined switches
-            posArgs = [x | x <- args, ClPosArg == (classify x)]
-            potSwitches = [x | x <- args, ClSwitch == (classify x)]
-            potDataSwitches = [x | x <- args, ClDataSwitch == (classify x)]
-        

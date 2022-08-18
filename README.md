@@ -7,4 +7,4 @@ A switch is a datatype containing a short id, long id, and description of the sw
 
 `swHelp = Switch "-h" "--help" "Displays the help menu" :: Switch`
 
-The parseArgs function returns Args where `type Args = ([PosArg])
+The parseArgs function returns Args (defined in src/Types.hs)

@@ -1,3 +1,4 @@
 Handle passing optional values ie --initial-branch="main"
 Ensure required args exist
 Deduce short ids
+Export lists
