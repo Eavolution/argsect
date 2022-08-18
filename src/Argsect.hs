@@ -1,6 +1,13 @@
-module Argsect where
-import Types
+module Argsect  (
+                module Types,
+                argsect,
+                defaultHelpText,
+                defaultUndefText,
+                getUndefDataSwitches,
+                getUndefSwitches
+                ) where
 
+import Types 
 import Data.Maybe
 
 -- Takes the command line arguments and turns them into Args
@@ -12,13 +19,15 @@ argsect switches dataSwitches args =
             posArgs = [x | x <- args, ClPosArg == (classify x)]
             potSwitches = [x | x <- args, ClSwitch == (classify x)]
             potDataSwitches = [x | x <- args, ClDataSwitch == (classify x)]
-        
+
+-- Gives a string showing switches in pretty form
 prettySwitches :: [Switch] -> String
 prettySwitches sws = foldl acc "" sws
     where 
         acc :: Show a => String -> a -> String
         acc a b = a ++ "\n" ++ (show b)
 
+-- Gives a string showing data switches in pretty form
 prettyDataSwitches :: [DataSwitch] -> String
 prettyDataSwitches dSws = foldl acc "" dSws
     where 
@@ -26,20 +35,27 @@ prettyDataSwitches dSws = foldl acc "" dSws
         acc a b = a ++ "\n" ++ (show b)
 
 -- (Undefined switches) (Defined switches)
+-- Gives error text for having undefined switches / data switches
 defaultUndefText :: ([Switch], [DataSwitch]) -> ([Switch], [DataSwitch]) -> String -> String -> String
 defaultUndefText undef defined progName usageDescription =
     "Error, used undefined switches:\n" ++ (prettySwitches $ fst undef) ++ "\n" ++
         (prettyDataSwitches $ snd undef) ++ "\n" ++
         defaultHelpText (fst defined) (snd defined) progName usageDescription
 
+-- Gives default help text based on arguments
 defaultHelpText :: [Switch] -> [DataSwitch] -> String -> String -> String
 defaultHelpText switches dSwitches progName usageDescription = 
     "Usage: " ++ progName ++ " " ++ usageDescription ++ "\n\nSwitches:"
         ++ prettySwitches switches ++ "\n\nData switches:\n" ++ prettyDataSwitches dSwitches
 
-getUndefined :: [Switch] -> [Switch]
-getUndefined = filter (\x -> x == UndefinedSwitch "")
+-- Gets all undefined values from a list
+getUndefSwitches :: [Switch] -> [Switch]
+getUndefSwitches = filter (\x -> x == UndefinedSwitch "")
 
+getUndefDataSwitches :: [DataSwitch] -> [DataSwitch]
+getUndefDataSwitches = filter (\x -> x == UndefinedDataSwitch "")
+
+-- Compares a string to the IDs of a switch
 strCmpSwitch :: String -> Switch -> Bool
 strCmpSwitch str sw = (str == (swIdShort sw)) || (str == (swIdLong sw))
 
@@ -48,14 +64,7 @@ head' :: [a] -> Maybe a
 head' (x:_) = Just x
 head' [] = Nothing
 
--- Strip stripVal from start of list
-lstrip :: (Eq a) => a -> [a] -> [a]
-lstrip stripVal lst = 
-    case lst of
-        [] -> []
-        (x:xs) -> if x == stripVal
-        then lstrip stripVal xs else lst
-
+-- Splits a string on the first occurance of a Char
 splitAtFirst :: Char -> String -> (String, String)
 splitAtFirst x = fmap (drop 1) . break (x ==)    
 

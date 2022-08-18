@@ -1,6 +1,12 @@
 -- Holds all the types and instances needed to parse arguments
 
-module Types where 
+module Types    (
+                PosArg,
+                ArgClassification (..),
+                Args (..),
+                Switch (..),
+                DataSwitch (..)
+                ) where 
 import Data.Maybe
 
 type PosArg = String
