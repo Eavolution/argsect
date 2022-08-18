@@ -7,9 +7,21 @@ import Data.Maybe
 swHelp = Switch "-h" "--help" "Displays the help menu."
 swEu = Switch "-e" "--europe" "Formats EU style."
 
-dswWords = DataSwitch "-w" "--wordlist" Nothing True "Sets wordlist."
-parse = argsect [swHelp, swEu] [dswWords]
+cSwitches = [swHelp, swEu]
+cdSwitches = [dswWords]
+
+dswWords = DataSwitch "-w" "--wordlist" (Just "/Wordlist") True "Sets wordlist."
+parse = argsect cSwitches cdSwitches
 -- /Testing
+
+getDefaultHelpText :: [Switch] -> [DataSwitch] -> String -> String -> String
+getDefaultHelpText switches dSwitches progName usageDescription = 
+    "Usage: " ++ progName ++ " " ++ usageDescription ++ "\n\n" ++ options switches dSwitches
+    where 
+        acc :: Show a => String -> a -> String
+        acc a b = a ++ "\n" ++ (show b)
+        options switches dSwitches =
+            foldl acc ((foldl acc "Switches:" switches)++ "\n\nData switches") dSwitches
 
 getUndefined :: [Switch] -> [Switch]
 getUndefined = filter (\x -> x == UndefinedSwitch "")
