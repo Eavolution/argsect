@@ -33,8 +33,8 @@ argsect switches dataSwitches args = checkArgs switches dataSwitches uncheckedAr
                 | otherwise = (Nothing,
                     Just (defaultUndefText (undefSwitches, undefDataSwitches) (cSwitches, cDataSwitches)))
                 where
-                    undefSwitches = getUndefSwitches cSwitches :: [Switch]
-                    undefDataSwitches = getUndefDataSwitches cDataSwitches :: [DataSwitch]
+                    undefSwitches = getUndefSwitches (aSwitches cArgs) :: [Switch]
+                    undefDataSwitches = getUndefDataSwitches (aDataSwitches cArgs) :: [DataSwitch]
 
 -- Gives a string showing switches in pretty form
 prettySwitches :: [Switch] -> String
