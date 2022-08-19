@@ -3,7 +3,8 @@ module Argsect
     module Argsect.Types,
     argsect,
     defaultHelpText,
-    defaultUndefText
+    defaultUndefText,
+    getDataSwitchFromList
 ) where
 
 import Data.Maybe
@@ -79,6 +80,11 @@ classify arg
     | '-' /= (head arg) = ClPosArg
     | '=' `elem` arg = ClDataSwitch
     | otherwise = ClSwitch
+
+-- If the specified ID is one of a data switch in the list, get the data from it, else Nothing
+getDataFromDswList :: String -> [DataSwitch] -> Maybe String
+getDataFromDswList dswid lst = maybe Nothing (\x -> Just (dswData x)) 
+    (head' (filter (\x -> (dswIdShort x == dswid) || (dswIdLong x == dswid)) lst))
 
 -- Takes a list of defined switches and a potential switch. Matches the potential switch to an element
 -- of the defined switches. If its not found, then an UndefinedSwitch is returned.
