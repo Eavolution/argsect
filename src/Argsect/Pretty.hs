@@ -36,7 +36,7 @@ defaultUndefText undef defined progName usageDescription =
 defaultHelpText :: [Switch] -> [DataSwitch] -> String -> String -> String
 defaultHelpText switches dSwitches progName usageDescription = 
     "Usage: " ++ progName ++ " " ++ usageDescription ++ "\n\nSwitches:"
-        ++ prettySwitches switches ++ "\n\nData switches:\n" ++ prettyDataSwitches dSwitches
+        ++ prettySwitches switches ++ "\n\nData switches:" ++ prettyDataSwitches dSwitches
 
 defaultInvalidText :: [DataSwitch] -> String -> String -> String
 defaultInvalidText dsws progName usageDescription =
