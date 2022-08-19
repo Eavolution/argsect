@@ -4,7 +4,7 @@ module Argsect
     argsect,
     defaultHelpText,
     defaultUndefText,
-    getDataSwitchFromList
+    getDataFromDswList
 ) where
 
 import Data.Maybe
