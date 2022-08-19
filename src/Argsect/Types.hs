@@ -1,12 +1,13 @@
 -- Holds all the types and instances needed to parse arguments
 
-module Types    (
-                PosArg,
-                ArgClassification (..),
-                Args (..),
-                Switch (..),
-                DataSwitch (..)
-                ) where 
+module Argsect.Types
+(
+    PosArg,
+    ArgClassification (..),
+    Args (..),
+    Switch (..),
+    DataSwitch (..)
+ ) where 
 
 import Data.Maybe
 

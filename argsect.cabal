@@ -26,7 +26,8 @@ source-repository head
 library
   exposed-modules:
       Argsect
-      Types
+      Argsect.Pretty
+      Argsect.Types
   other-modules:
       Paths_argsect
   hs-source-dirs:

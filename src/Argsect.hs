@@ -1,14 +1,15 @@
-module Argsect  (
-                module Types,
-                argsect,
-                defaultHelpText,
-                defaultUndefText,
-                getUndefDataSwitches,
-                getUndefSwitches
-                ) where
+module Argsect 
+(
+    module Argsect.Types,
+    argsect,
+    defaultHelpText,
+    defaultUndefText,
+) where
 
-import Types 
 import Data.Maybe
+
+import Argsect.Types 
+import Argsect.Pretty
 
 -- Takes the command line arguments and turns them into Maybe Args.
 -- If unrecognised switch etc, Just (String -> String -> String) is returned.
@@ -36,33 +37,9 @@ argsect switches dataSwitches args = checkArgs switches dataSwitches uncheckedAr
                     undefSwitches = getUndefSwitches (aSwitches cArgs) :: [Switch]
                     undefDataSwitches = getUndefDataSwitches (aDataSwitches cArgs) :: [DataSwitch]
 
--- Gives a string showing switches in pretty form
-prettySwitches :: [Switch] -> String
-prettySwitches sws = foldl acc "" sws
-    where 
-        acc :: Show a => String -> a -> String
-        acc a b = a ++ "\n" ++ (show b)
-
--- Gives a string showing data switches in pretty form
-prettyDataSwitches :: [DataSwitch] -> String
-prettyDataSwitches dSws = foldl acc "" dSws
-    where 
-        acc :: Show a => String -> a -> String
-        acc a b = a ++ "\n" ++ (show b)
-
--- (Undefined switches) (Defined switches)
--- Gives error text for having undefined switches / data switches
-defaultUndefText :: ([Switch], [DataSwitch]) -> ([Switch], [DataSwitch]) -> String -> String -> String
-defaultUndefText undef defined progName usageDescription =
-    "Error, used undefined switches:\n" ++ (prettySwitches $ fst undef) ++ "\n" ++
-        (prettyDataSwitches $ snd undef) ++ "\n" ++
-        defaultHelpText (fst defined) (snd defined) progName usageDescription
-
--- Gives default help text based on arguments
-defaultHelpText :: [Switch] -> [DataSwitch] -> String -> String -> String
-defaultHelpText switches dSwitches progName usageDescription = 
-    "Usage: " ++ progName ++ " " ++ usageDescription ++ "\n\nSwitches:"
-        ++ prettySwitches switches ++ "\n\nData switches:\n" ++ prettyDataSwitches dSwitches
+-- Compares a string to the IDs of a switch
+strCmpSwitch :: String -> Switch -> Bool
+strCmpSwitch str sw = (str == (swIdShort sw)) || (str == (swIdLong sw))
 
 -- Gets all undefined values from a list
 getUndefSwitches :: [Switch] -> [Switch]
@@ -71,18 +48,21 @@ getUndefSwitches = filter (\x -> x == UndefinedSwitch "")
 getUndefDataSwitches :: [DataSwitch] -> [DataSwitch]
 getUndefDataSwitches = filter (\x -> x == UndefinedDataSwitch "")
 
--- Compares a string to the IDs of a switch
-strCmpSwitch :: String -> Switch -> Bool
-strCmpSwitch str sw = (str == (swIdShort sw)) || (str == (swIdLong sw))
+-- Splits a string on the first occurance of a Char
+splitAtFirst :: Char -> String -> (String, String)
+splitAtFirst x = fmap (drop 1) . break (x ==)  
 
 -- Head that doesn't throw exceptions, but returns a Maybe
 head' :: [a] -> Maybe a
 head' (x:_) = Just x
 head' [] = Nothing
 
--- Splits a string on the first occurance of a Char
-splitAtFirst :: Char -> String -> (String, String)
-splitAtFirst x = fmap (drop 1) . break (x ==)    
+-- Classifies string into what type of argument it is
+classify :: String -> ArgClassification
+classify arg
+    | '-' /= (head arg) = ClPosArg
+    | '=' `elem` arg = ClDataSwitch
+    | otherwise = ClSwitch
 
 -- Takes a list of defined switches and a potential switch. Matches the potential switch to an element
 -- of the defined switches. If its not found, then an UndefinedSwitch is returned.
@@ -108,10 +88,3 @@ stringToDataSwitch dSwitches string = fromMaybe (UndefinedDataSwitch string) (st
                 Just (DataSwitch (dswIdShort match) (dswIdLong match) (Just dat) (dswrequired match) (dswInfo match))
             else
                 Nothing
-
--- Classifies string into what type of argument it is
-classify :: String -> ArgClassification
-classify arg
-    | '-' /= (head arg) = ClPosArg
-    | '=' `elem` arg = ClDataSwitch
-    | otherwise = ClSwitch
