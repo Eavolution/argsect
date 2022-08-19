@@ -7,6 +7,7 @@ module Types    (
                 Switch (..),
                 DataSwitch (..)
                 ) where 
+
 import Data.Maybe
 
 type PosArg = String

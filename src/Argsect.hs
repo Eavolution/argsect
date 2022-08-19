@@ -10,15 +10,31 @@ module Argsect  (
 import Types 
 import Data.Maybe
 
--- Takes the command line arguments and turns them into Args
-argsect :: [Switch] -> [DataSwitch] -> [String] -> Args
-argsect switches dataSwitches args =
-    Args posArgs (map (stringToSwitch switches) potSwitches) (map (stringToDataSwitch dataSwitches) potDataSwitches)
+-- Takes the command line arguments and turns them into Maybe Args.
+-- If unrecognised switch etc, Just (String -> String -> String) is returned.
+-- This function expects the program name and usage description
+-- and returns the formatted error text to be displayed
+argsect :: [Switch] -> [DataSwitch] -> [String] -> (Maybe Args, Maybe (String -> String -> String))
+argsect switches dataSwitches args = checkArgs switches dataSwitches uncheckedArgs
+    
         where
             -- lstTuple is a tuple of list of positional arguments, potentially defined switches
-            posArgs = [x | x <- args, ClPosArg == (classify x)]
-            potSwitches = [x | x <- args, ClSwitch == (classify x)]
-            potDataSwitches = [x | x <- args, ClDataSwitch == (classify x)]
+            posArgs = [x | x <- args, ClPosArg == (classify x)] :: [String]
+            potSwitches = [x | x <- args, ClSwitch == (classify x)] :: [String]
+            potDataSwitches = [x | x <- args, ClDataSwitch == (classify x)] :: [String]
+
+            uncheckedArgs :: Args
+            uncheckedArgs = Args posArgs (map (stringToSwitch switches) potSwitches)
+                (map (stringToDataSwitch dataSwitches) potDataSwitches)
+
+            checkArgs :: [Switch] -> [DataSwitch] -> Args -> (Maybe Args, Maybe (String -> String -> String))
+            checkArgs cSwitches cDataSwitches cArgs
+                | null undefSwitches && null undefDataSwitches = (Just cArgs, Nothing)
+                | otherwise = (Nothing,
+                    Just (defaultUndefText (undefSwitches, undefDataSwitches) (cSwitches, cDataSwitches)))
+                where
+                    undefSwitches = getUndefSwitches cSwitches :: [Switch]
+                    undefDataSwitches = getUndefDataSwitches cDataSwitches :: [DataSwitch]
 
 -- Gives a string showing switches in pretty form
 prettySwitches :: [Switch] -> String
