@@ -50,7 +50,7 @@ checkArgs cSwitches cDataSwitches cArgs
 -- Get all data switches where the data does not validate
 getInvalidDataSwitches :: [DataSwitch] -> [DataSwitch]
 getInvalidDataSwitches dsws = 
-    filter (\dsw -> not ((dswValidate dsw) (fromJust (dswData dsw))))
+    filter (\dsw -> not ((dswValidate dsw) (dswData dsw)))
         dsws
 
 -- Compares a string to the IDs of a switch
@@ -105,6 +105,6 @@ stringToDataSwitch dSwitches string = fromMaybe (UndefinedDataSwitch string) (st
             if isJust $ getMatch sdSwitches sString then do
                 match <- (getMatch sdSwitches sString)
                 -- Same as match, just with the data from the argument
-                Just (DataSwitch (dswIdShort match) (dswIdLong match) (Just dat) (dswValidate match) (dswrequired match) (dswInfo match))
+                Just (DataSwitch (dswIdShort match) (dswIdLong match) (dat) (dswValidate match) (dswrequired match) (dswInfo match))
             else
                 Nothing

@@ -52,7 +52,7 @@ data DataSwitch = UndefinedDataSwitch {dswId :: String} |
                   DataSwitch {
                             dswIdShort :: String,
                             dswIdLong :: String,
-                            dswData :: Maybe String, -- The data for the switch, after the =. Provide an example
+                            dswData :: String, -- The data for the switch, after the =. Provide an example
                             dswValidate :: (String -> Bool), -- Validation for the data
                             dswrequired :: Bool, -- If the switch is required
                             dswInfo :: String
@@ -61,7 +61,7 @@ data DataSwitch = UndefinedDataSwitch {dswId :: String} |
 
 instance Show DataSwitch where
     show (DataSwitch idS idL dat _ req inf) = 
-        idS ++ " " ++ idL ++ (maybe "" (\x -> " = " ++ x) dat) ++ " -> " ++ inf ++ " Required = " ++ show req
+        idS ++ " " ++ idL ++ " = " ++ dat ++ " -> " ++ inf ++ " Required = " ++ show req
     show (UndefinedDataSwitch switchId) = "Undefined data-switch: " ++ switchId
 
 instance Eq DataSwitch where
