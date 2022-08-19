@@ -7,7 +7,7 @@ module Argsect.Types
     Args (..),
     Switch (..),
     DataSwitch (..)
- ) where 
+) where 
 
 import Data.Maybe
 
@@ -52,20 +52,21 @@ data DataSwitch = UndefinedDataSwitch {dswId :: String} |
                   DataSwitch {
                             dswIdShort :: String,
                             dswIdLong :: String,
-                            dswData :: Maybe String, -- The data for the switch, after the =. Provide an example 
+                            dswData :: Maybe String, -- The data for the switch, after the =. Provide an example
+                            dswValidate :: (String -> Bool), -- Validation for the data
                             dswrequired :: Bool, -- If the switch is required
                             dswInfo :: String
                             }
 
 
 instance Show DataSwitch where
-    show (DataSwitch idS idL dat req inf) = 
+    show (DataSwitch idS idL dat _ req inf) = 
         idS ++ " " ++ idL ++ (maybe "" (\x -> " = " ++ x) dat) ++ " -> " ++ inf ++ " Required = " ++ show req
     show (UndefinedDataSwitch switchId) = "Undefined data-switch: " ++ switchId
 
 instance Eq DataSwitch where
     -- If one of the id's are the same, the switch is the same
-    (==) (DataSwitch idS1 idL1 _ _ _) (DataSwitch idS2 idL2 _ _ _) = (idS1 == idS2) || (idL1 == idL2)
+    (==) (DataSwitch idS1 idL1 _ _ _ _) (DataSwitch idS2 idL2 _ _ _ _) = (idS1 == idS2) || (idL1 == idL2)
     -- All undefineds are the same
     (==) (UndefinedDataSwitch _) (UndefinedDataSwitch _) = True
     -- If they're different, theyre not equivalent

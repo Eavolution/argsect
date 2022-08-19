@@ -3,7 +3,7 @@ module Argsect
     module Argsect.Types,
     argsect,
     defaultHelpText,
-    defaultUndefText,
+    defaultUndefText
 ) where
 
 import Data.Maybe
@@ -11,13 +11,16 @@ import Data.Maybe
 import Argsect.Types 
 import Argsect.Pretty
 
--- Takes the command line arguments and turns them into Maybe Args.
--- If unrecognised switch etc, Just (String -> String -> String) is returned.
--- This function expects the program name and usage description
--- and returns the formatted error text to be displayed
+-- First value is Just if all parsing was successful, the second value is Nothing
+-- First value is Nothing if parsing failed, the second value is a Just function taking the
+-- program name and usage description to return an error message to show. End the program after
+-- showing this message.
+-- Takes the command line arguments and turns them into either Args or a function taking the 
+-- program name and usage information and returning an error string.
+-- Parsing fails on an unrecognised switch being used, or data not validating.
+
 argsect :: [Switch] -> [DataSwitch] -> [String] -> (Maybe Args, Maybe (String -> String -> String))
 argsect switches dataSwitches args = checkArgs switches dataSwitches uncheckedArgs
-    
         where
             -- lstTuple is a tuple of list of positional arguments, potentially defined switches
             posArgs = [x | x <- args, ClPosArg == (classify x)] :: [String]
@@ -28,20 +31,33 @@ argsect switches dataSwitches args = checkArgs switches dataSwitches uncheckedAr
             uncheckedArgs = Args posArgs (map (stringToSwitch switches) potSwitches)
                 (map (stringToDataSwitch dataSwitches) potDataSwitches)
 
-            checkArgs :: [Switch] -> [DataSwitch] -> Args -> (Maybe Args, Maybe (String -> String -> String))
-            checkArgs cSwitches cDataSwitches cArgs
-                | null undefSwitches && null undefDataSwitches = (Just cArgs, Nothing)
-                | otherwise = (Nothing,
-                    Just (defaultUndefText (undefSwitches, undefDataSwitches) (cSwitches, cDataSwitches)))
-                where
-                    undefSwitches = getUndefSwitches (aSwitches cArgs) :: [Switch]
-                    undefDataSwitches = getUndefDataSwitches (aDataSwitches cArgs) :: [DataSwitch]
+checkArgs :: [Switch] -> [DataSwitch] -> Args -> (Maybe Args, Maybe (String -> String -> String))
+checkArgs cSwitches cDataSwitches cArgs
+    -- If any data does not validate, return a function taking progName 
+    -- and usage that returns an error string
+    | not (null invalidDataSwitches) = (Nothing, Just (defaultInvalidText cDataSwitches))
+    -- If there are any undefined switches used, return a function taking progName 
+    -- and usage that returns an error string
+    | not (null undefSwitches && null undefDataSwitches) = (Nothing,
+        Just (defaultUndefText (undefSwitches, undefDataSwitches) (cSwitches, cDataSwitches)))
+    -- Otherwise parsing was successful :)
+    | otherwise = (Just cArgs, Nothing)
+    where
+        invalidDataSwitches = getInvalidDataSwitches (aDataSwitches cArgs) :: [DataSwitch]
+        undefSwitches = getUndefSwitches (aSwitches cArgs) :: [Switch]
+        undefDataSwitches = getUndefDataSwitches (aDataSwitches cArgs) :: [DataSwitch]
+
+-- Get all data switches where the data does not validate
+getInvalidDataSwitches :: [DataSwitch] -> [DataSwitch]
+getInvalidDataSwitches dsws = 
+    filter (\dsw -> not ((dswValidate dsw) (fromJust (dswData dsw))))
+        dsws
 
 -- Compares a string to the IDs of a switch
 strCmpSwitch :: String -> Switch -> Bool
 strCmpSwitch str sw = (str == (swIdShort sw)) || (str == (swIdLong sw))
 
--- Gets all undefined values from a list
+-- Gets all undefined switches from a list
 getUndefSwitches :: [Switch] -> [Switch]
 getUndefSwitches = filter (\x -> x == UndefinedSwitch "")
 
@@ -77,14 +93,18 @@ stringToSwitch switches string = fromMaybe (UndefinedSwitch string) $ strTomSwit
 stringToDataSwitch :: [DataSwitch] -> String -> DataSwitch
 stringToDataSwitch dSwitches string = fromMaybe (UndefinedDataSwitch string) (strTomSwitch dSwitches (fst split) (snd split))
     where
+        -- Finds match in provided data switches or nothing
         getMatch :: [DataSwitch] -> String -> Maybe DataSwitch
         getMatch gdSwitches str = head' (filter (\x -> (dswIdShort x == str) || (dswIdLong x == str)) gdSwitches)
 
         split = splitAtFirst '=' string
-        strTomSwitch :: [DataSwitch] -> String -> String-> Maybe DataSwitch
+        -- Converts a
+        strTomSwitch :: [DataSwitch] -> String -> String -> Maybe DataSwitch
         strTomSwitch sdSwitches sString dat =
+            -- Match is DataSwitch from defined
             if isJust $ getMatch sdSwitches sString then do
                 match <- (getMatch sdSwitches sString)
-                Just (DataSwitch (dswIdShort match) (dswIdLong match) (Just dat) (dswrequired match) (dswInfo match))
+                -- Same as match, just with the data from the argument
+                Just (DataSwitch (dswIdShort match) (dswIdLong match) (Just dat) (dswValidate match) (dswrequired match) (dswInfo match))
             else
                 Nothing

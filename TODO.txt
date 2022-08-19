@@ -1,3 +1,10 @@
-Ensure required args exist
-Organise functions
-Deduce short ids
+Short term
+    Ensure required args exist
+    Organise functions
+    Strip quotes off DataSwitch data
+    Handle spaces after =
+
+Long term
+    Exclusive pairs
+    Deduce short ids
+
