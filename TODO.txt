@@ -1,10 +1,9 @@
 Short term
-    Ensure required args exist
-    Organise functions
     Strip quotes off DataSwitch data
     Handle spaces after =
 
 Long term
+    Haddock documentation
     Exclusive pairs
     Deduce short ids
 

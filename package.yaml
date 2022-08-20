@@ -1,7 +1,7 @@
 name:                argsect
 version:             0.1.1.0
 github:              "Eavolution/argsect"
-license:             BSD3
+license:             MIT
 author:              "Eavolution"
 maintainer:          "N/A"
 copyright:           "Eavolution"
@@ -30,7 +30,6 @@ ghc-options:
 - -Wincomplete-uni-patterns
 - -Wmissing-export-lists
 - -Wmissing-home-modules
-- -Wpartial-fields
 - -Wredundant-constraints
 
 library:
